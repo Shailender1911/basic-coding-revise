@@ -1,4 +1,4 @@
-package maths;
+package src.maths;
 
 public class ArmstrongNumber {
 
