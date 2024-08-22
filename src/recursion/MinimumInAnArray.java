@@ -18,7 +18,7 @@ public class MinimumInAnArray {
     }
 
     public static void main(String[] args) {
-        int a[] = {10, 20, 20, 5, 50, 15, 30, 45};
+        int[] a = {10, 20, 20, 5, 50, 15, 30, 45};
         System.out.println(findMinimum(a, Integer.MAX_VALUE, 0));  // Output will be 5
     }
 }
