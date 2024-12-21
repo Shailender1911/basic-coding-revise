@@ -1,7 +1,5 @@
 package tree.binary.search.tree;
 
-import javax.print.attribute.standard.NumberOfDocuments;
-
 public class BinarySearchTree {
 
     Node root;
