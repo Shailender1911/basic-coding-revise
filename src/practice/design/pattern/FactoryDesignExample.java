@@ -1,7 +1,5 @@
 package practice.design.pattern;
 
-import java.awt.*;
-
 public class FactoryDesignExample {
     public static void main(String[] args) {
         ShapeFactory shapeFactory = new ShapeFactory();

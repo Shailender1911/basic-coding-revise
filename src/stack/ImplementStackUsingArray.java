@@ -1,9 +1,9 @@
 package stack;
 
 public class ImplementStackUsingArray {
-    private int[] stack;
+    private final int[] stack;
     private int top;
-    private int capacity;
+    private final int capacity;
 
     // Constructor to initialize the stack
     public ImplementStackUsingArray(int size) {
