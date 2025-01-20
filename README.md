@@ -331,3 +331,247 @@ In this example:
     - Avoid overusing unchecked exceptions for situations that are not truly exceptional.
 
 By understanding the difference and propagation behavior of these exception types, you can write robust and maintainable Java programs.
+
+
+Here's a detailed explanation in the form of a `README.md` file, covering `join` vs `wait` and other important methods of the `Thread` class in Java.
+
+---
+
+# Java Thread Class: `join`, `wait`, and Other Important Methods
+
+Java's `Thread` class provides powerful tools for multithreading. This document explains the commonly asked methods of the `Thread` class in interviews, with a focus on `join` vs `wait`.
+
+---
+
+## Table of Contents
+
+1. [Thread Class Basics](#thread-class-basics)
+2. [join vs wait](#join-vs-wait)
+   - [Key Differences](#key-differences)
+   - [When to Use](#when-to-use)
+3. [Other Important Thread Methods](#other-important-thread-methods)
+4. [Examples of Commonly Asked Methods](#examples-of-commonly-asked-methods)
+5. [Best Practices](#best-practices)
+
+---
+
+## Thread Class Basics
+
+- The `Thread` class in Java belongs to the `java.lang` package.
+- It is used to create and manage threads in multithreaded applications.
+
+---
+
+## join vs wait
+
+### **join()**
+- **Purpose**: Ensures that the current thread waits for another thread to complete.
+- **Defined In**: `Thread` class.
+- **Usage**: Useful when one thread depends on the completion of another.
+- **Method Signature**:
+  ```java
+  public final void join() throws InterruptedException
+  public final void join(long millis) throws InterruptedException
+  ```
+- **Example**:
+  ```java
+  public class JoinExample {
+      public static void main(String[] args) throws InterruptedException {
+          Thread t1 = new Thread(() -> {
+              for (int i = 0; i < 5; i++) {
+                  System.out.println("Thread 1 - " + i);
+              }
+          });
+
+          t1.start();
+          t1.join(); // Main thread waits for t1 to finish
+
+          System.out.println("Main thread resumes after t1 completes.");
+      }
+  }
+  ```
+
+### **wait()**
+- **Purpose**: Causes the current thread to wait until another thread notifies it.
+- **Defined In**: `Object` class.
+- **Usage**: Synchronization between threads, typically used with `notify()` or `notifyAll()`.
+- **Method Signature**:
+  ```java
+  public final void wait() throws InterruptedException
+  public final void wait(long timeout) throws InterruptedException
+  public final void wait(long timeout, int nanos) throws InterruptedException
+  ```
+- **Example**:
+  ```java
+  public class WaitExample {
+      public static void main(String[] args) {
+          Object lock = new Object();
+
+          Thread t1 = new Thread(() -> {
+              synchronized (lock) {
+                  try {
+                      System.out.println("Thread 1 waiting...");
+                      lock.wait(); // Thread 1 waits for notification
+                      System.out.println("Thread 1 resumed.");
+                  } catch (InterruptedException e) {
+                      e.printStackTrace();
+                  }
+              }
+          });
+
+          t1.start();
+
+          Thread t2 = new Thread(() -> {
+              synchronized (lock) {
+                  System.out.println("Thread 2 notifying...");
+                  lock.notify(); // Notifies Thread 1
+              }
+          });
+
+          t2.start();
+      }
+  }
+  ```
+
+---
+
+### Key Differences
+
+| Feature                  | `join`                                    | `wait`                                   |
+|--------------------------|-------------------------------------------|------------------------------------------|
+| **Defined In**            | `Thread` class                           | `Object` class                           |
+| **Purpose**               | Waits for a thread to finish execution   | Waits for a notification from another thread |
+| **Synchronization**       | Not required                             | Requires synchronization (inside a synchronized block) |
+| **How to Notify**         | Not applicable                          | Use `notify()` or `notifyAll()`          |
+| **Example Use Case**       | Waiting for a thread to complete         | Implementing producer-consumer problems |
+
+---
+
+### When to Use
+
+- **Use `join`**:
+   - When a thread must wait for another thread to complete.
+   - Example: A main thread waiting for a worker thread to finish a task before proceeding.
+
+- **Use `wait`**:
+   - When implementing inter-thread communication.
+   - Example: Producer-consumer scenarios where threads must coordinate their execution.
+
+---
+
+## Other Important Thread Methods
+
+### 1. **sleep()**
+- **Purpose**: Causes the current thread to pause execution for a specified duration.
+- **Defined In**: `Thread` class.
+- **Method Signature**:
+  ```java
+  public static void sleep(long millis) throws InterruptedException
+  ```
+- **Example**:
+  ```java
+  public class SleepExample {
+      public static void main(String[] args) throws InterruptedException {
+          System.out.println("Main thread sleeping...");
+          Thread.sleep(2000); // Sleep for 2 seconds
+          System.out.println("Main thread resumes after sleep.");
+      }
+  }
+  ```
+
+---
+
+### 2. **yield()**
+- **Purpose**: Suggests that the current thread is willing to yield its execution to other threads of the same priority.
+- **Defined In**: `Thread` class.
+- **Method Signature**:
+  ```java
+  public static void yield()
+  ```
+- **Example**:
+  ```java
+  public class YieldExample {
+      public static void main(String[] args) {
+          Thread t1 = new Thread(() -> {
+              for (int i = 0; i < 5; i++) {
+                  System.out.println("Thread 1 - " + i);
+                  Thread.yield();
+              }
+          });
+
+          Thread t2 = new Thread(() -> {
+              for (int i = 0; i < 5; i++) {
+                  System.out.println("Thread 2 - " + i);
+              }
+          });
+
+          t1.start();
+          t2.start();
+      }
+  }
+  ```
+
+---
+
+### 3. **interrupt()**
+- **Purpose**: Interrupts a thread, which can break its blocking operations like `sleep` or `wait`.
+- **Defined In**: `Thread` class.
+- **Method Signature**:
+  ```java
+  public void interrupt()
+  ```
+- **Example**:
+  ```java
+  public class InterruptExample {
+      public static void main(String[] args) {
+          Thread t1 = new Thread(() -> {
+              try {
+                  Thread.sleep(5000);
+              } catch (InterruptedException e) {
+                  System.out.println("Thread interrupted!");
+              }
+          });
+
+          t1.start();
+          t1.interrupt(); // Interrupt the thread
+      }
+  }
+  ```
+
+---
+
+### 4. **isAlive()**
+- **Purpose**: Checks if a thread is alive (i.e., started and not yet terminated).
+- **Defined In**: `Thread` class.
+- **Method Signature**:
+  ```java
+  public final boolean isAlive()
+  ```
+- **Example**:
+  ```java
+  public class IsAliveExample {
+      public static void main(String[] args) throws InterruptedException {
+          Thread t1 = new Thread(() -> System.out.println("Thread is running..."));
+
+          System.out.println("Is thread alive before start? " + t1.isAlive());
+          t1.start();
+          System.out.println("Is thread alive after start? " + t1.isAlive());
+      }
+  }
+  ```
+
+---
+
+## Best Practices
+
+1. Use `join` for dependency between threads and `wait/notify` for thread communication.
+2. Always handle `InterruptedException` properly when using methods like `sleep`, `wait`, or `join`.
+3. Use `isAlive()` for thread status checks during debugging or task monitoring.
+4. Minimize the use of `Thread.yield()` as it is dependent on thread priorities, which vary between platforms.
+5. Prefer higher-level concurrency APIs like `ExecutorService` and `CompletableFuture` over manual thread management where possible.
+
+---
+
+## Conclusion
+
+The `Thread` class provides various methods to manage threads effectively. Understanding when and how to use these methods, especially `join` and `wait`, is crucial for building robust and efficient multithreaded applications.
