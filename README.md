@@ -747,3 +747,100 @@ public class Main {
     }
 }
 ```
+
+## ArrayDeque vs LinkedList in Java
+
+`ArrayDeque` is a resizable array implementation of the `Deque` interface. It can be used as both a stack (LIFO) and a queue (FIFO). Here are some common usages of `ArrayDeque`:
+
+### 1. Using `ArrayDeque` as a Queue (FIFO)
+```java
+import java.util.ArrayDeque;
+
+public class ArrayDequeAsQueue {
+    public static void main(String[] args) {
+        ArrayDeque<Integer> queue = new ArrayDeque<>();
+
+        // Adding elements to the queue
+        queue.addLast(10);
+        queue.addLast(20);
+        queue.addLast(30);
+        queue.addLast(40);
+
+        // Removing elements from the queue
+        System.out.println("Before removing: " + queue);
+        queue.removeFirst();
+        System.out.println("After removing: " + queue);
+    }
+}
+```
+
+### 2. Using `ArrayDeque` as a Stack (LIFO)
+```java
+import java.util.ArrayDeque;
+
+public class ArrayDequeAsStack {
+    public static void main(String[] args) {
+        ArrayDeque<Integer> stack = new ArrayDeque<>();
+
+        // Pushing elements onto the stack
+        stack.addFirst(10);
+        stack.addFirst(20);
+        stack.addFirst(30);
+        stack.addFirst(40);
+
+        // Popping elements from the stack
+        System.out.println("Before popping: " + stack);
+        stack.removeFirst();
+        System.out.println("After popping: " + stack);
+    }
+}
+```
+
+### 3. Common Operations
+```java
+import java.util.ArrayDeque;
+
+public class ArrayDequeOperations {
+    public static void main(String[] args) {
+        ArrayDeque<Integer> deque = new ArrayDeque<>();
+
+        // Adding elements
+        deque.addFirst(10);
+        deque.addLast(20);
+
+        // Accessing elements
+        System.out.println("First element: " + deque.getFirst());
+        System.out.println("Last element: " + deque.getLast());
+
+        // Removing elements
+        deque.removeFirst();
+        deque.removeLast();
+
+        // Checking if empty
+        System.out.println("Is deque empty? " + deque.isEmpty());
+    }
+}
+```
+
+### Key Points
+- `ArrayDeque` is not thread-safe.
+- It is more memory efficient and faster than `LinkedList` for stack and queue operations.
+- It does not allow `null` elements.
+
+### Performance Differences Between `ArrayDeque` and `LinkedList`
+
+#### **ArrayDeque**
+- **Memory Efficiency**: More memory efficient as it uses a resizable array.
+- **Speed**: Generally faster for stack and queue operations due to contiguous memory allocation.
+- **Insertion/Removal**: O(1) for operations at both ends (addFirst, addLast, removeFirst, removeLast).
+- **Random Access**: O(1) for accessing elements by index, but not supported directly as it is not a List.
+
+#### **LinkedList**
+- **Memory Efficiency**: Less memory efficient due to the overhead of storing node pointers.
+- **Speed**: Slower compared to `ArrayDeque` for stack and queue operations due to non-contiguous memory allocation.
+- **Insertion/Removal**: O(1) for operations at both ends (addFirst, addLast, removeFirst, removeLast), but O(n) for operations in the middle.
+- **Random Access**: O(n) for accessing elements by index, as it requires traversal from the head or tail.
+
+### Summary
+- **ArrayDeque** is generally preferred for stack and queue operations due to its better performance and memory efficiency.
+- **LinkedList** is useful when frequent insertions and deletions in the middle of the list are required.
