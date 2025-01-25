@@ -6,7 +6,7 @@ public class PriorityQueueExample {
     public static void main(String[] args) {
         PriorityQueue<Integer> pq = new PriorityQueue<>( (Integer a , Integer b) -> b - a);
 
-        // by default the queue is min heap , but if we want to make it max heap we can use the above lambda expression
+        // by default the PQ  queue is min heap , but if we want to make it max heap we can use the above lambda expression
         // or we can use Collections.reverseOrder() as well
         // we need to provide the comparator in the constructor of the PriorityQueue
         pq.add(10);
