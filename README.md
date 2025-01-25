@@ -575,6 +575,121 @@ public class WaitExample {
 
 ## Conclusion
 
-The `Thread` class provides various methods to manage threads effectively. Understanding when and how to use these methods, especially `join` and `wait`, is crucial for building robust and efficient multithreaded applications.
+Understanding Java exceptions and thread methods is crucial for writing robust and efficient multithreaded applications. By mastering these concepts, you can handle errors effectively and manage threads efficiently.
 
+# Differences in Java Multithreading Concepts
 
+### 1. Difference Between `Thread` and `Runnable`
+
+| **Aspect**               | **Thread**                                 | **Runnable**                             |
+|--------------------------|--------------------------------------------|------------------------------------------|
+| **Inheritance**          | Extends the `Thread` class.               | Implements the `Runnable` interface.     |
+| **Flexibility**          | Can’t extend another class (Java doesn’t support multiple inheritance). | Can extend another class as it only implements `Runnable`. |
+| **Usage**                | Creates a new thread directly.            | Requires passing an instance to a `Thread` object. |
+| **Example**              | `class MyThread extends Thread {}`        | `class MyRunnable implements Runnable {}` |
+
+---
+
+### 2. Difference Between `start()` and `run()`
+
+| **Aspect**               | **start()**                                | **run()**                                |
+|--------------------------|--------------------------------------------|------------------------------------------|
+| **Thread Execution**     | Creates a new thread and invokes `run()`. | Executes `run()` in the current thread.  |
+| **Concurrency**          | Code runs in a separate thread.           | Code runs in the calling thread.         |
+| **Usage**                | Used to start a new thread.               | Used when no multithreading is needed.   |
+| **Example**              | `thread.start();`                         | `thread.run();`                          |
+
+---
+
+### 3. Difference Between `synchronized` and `Lock`
+
+| **Aspect**               | **synchronized**                          | **Lock**                                 |
+|--------------------------|--------------------------------------------|------------------------------------------|
+| **Type**                 | Implicit locking.                         | Explicit locking (`ReentrantLock`).      |
+| **Interruptibility**     | Not interruptible.                        | Can be interrupted (`lockInterruptibly()`). |
+| **Performance**          | Less flexible but easier to use.          | Provides better performance under contention. |
+| **Try Lock**             | Not possible.                             | Supported using `tryLock()`.             |
+| **Unlocking**            | Automatic unlocking after block execution.| Requires explicit unlocking.             |
+| **Example**              | `synchronized(obj) {}`                    | `lock.lock(); // Critical section lock.unlock();` |
+
+---
+
+### 4. Difference Between `volatile` and `synchronized`
+
+| **Aspect**               | **volatile**                              | **synchronized**                         |
+|--------------------------|--------------------------------------------|------------------------------------------|
+| **Purpose**              | Ensures visibility of variable changes across threads. | Ensures mutual exclusion and visibility. |
+| **Locking**              | No locking mechanism.                     | Provides locking mechanism.              |
+| **Thread Safety**        | Doesn’t guarantee atomicity.              | Guarantees atomicity.                    |
+| **Usage**                | For flags or status variables.            | For critical sections with complex operations. |
+| **Example**              | `volatile boolean flag = true;`           | `synchronized void method() {}`          |
+
+---
+
+### 5. Difference Between `Thread` and `Process`
+
+| **Aspect**               | **Thread**                                | **Process**                              |
+|--------------------------|--------------------------------------------|------------------------------------------|
+| **Definition**           | Lightweight unit of execution within a process. | Independent unit of execution.           |
+| **Memory**               | Shares memory with other threads in the same process. | Has its own memory space.                |
+| **Communication**        | Easier (shared memory).                   | More complex (Inter-Process Communication). |
+| **Overhead**             | Lower.                                    | Higher due to memory and resource allocation. |
+
+---
+
+### 6. Difference Between Thread Pool (`ExecutorService`) and Creating Threads
+
+| **Aspect**               | **Thread Pool (`ExecutorService`)**       | **Creating Threads**                     |
+|--------------------------|--------------------------------------------|------------------------------------------|
+| **Performance**          | Efficient for large numbers of tasks.     | Expensive for a large number of threads. |
+| **Reuse**                | Reuses threads to reduce overhead.        | Creates new threads every time.          |
+| **Management**           | Managed via APIs like `submit()` or `shutdown()`. | Manually managed (e.g., `start()`, `join()`). |
+| **Example**              | `ExecutorService executor = Executors.newFixedThreadPool(5);` | `Thread thread = new Thread();`          |
+
+---
+
+### 7. Difference Between `Runnable` and `Callable`
+
+| **Aspect**               | **Runnable**                              | **Callable**                             |
+|--------------------------|--------------------------------------------|------------------------------------------|
+| **Return Type**          | Doesn’t return a result (`void`).          | Returns a result (`Future<V>`).          |
+| **Exception Handling**   | Can’t throw checked exceptions.            | Can throw checked exceptions.            |
+| **Introduced In**        | Java 1.0.                                 | Java 5 (with `java.util.concurrent`).    |
+| **Usage**                | Suitable for simple tasks.                | Suitable for tasks needing results.      |
+| **Example**              | `Thread t = new Thread(new RunnableTask());` | `Future<Integer> result = executor.submit(new CallableTask());` |
+
+---
+
+### 8. Difference Between `wait()` and `sleep()`
+
+| **Aspect**               | **wait()**                                | **sleep()**                              |
+|--------------------------|--------------------------------------------|------------------------------------------|
+| **Belongs To**           | Object class.                             | Thread class.                            |
+| **Purpose**              | Releases the lock and waits for notification. | Pauses execution for a specified time.   |
+| **Lock Handling**        | Releases the lock it holds.               | Doesn’t release any locks.               |
+| **Usage**                | Used for inter-thread communication.      | Used for making a thread sleep.          |
+| **Example**              | `wait();`                                 | `Thread.sleep(1000);`                    |
+
+---
+
+### 9. Difference Between Deadlock and Starvation
+
+| **Aspect**               | **Deadlock**                              | **Starvation**                           |
+|--------------------------|--------------------------------------------|------------------------------------------|
+| **Definition**           | Two or more threads wait indefinitely for each other. | A thread waits indefinitely because higher-priority threads are running. |
+| **Cause**                | Circular dependency on resources.         | Resource scheduling unfairness.          |
+| **Prevention**           | Avoid nested locks, apply timeout.        | Use fair scheduling policies.            |
+
+---
+
+### 10. Difference Between `notify()` and `notifyAll()`
+
+| **Aspect**               | **notify()**                              | **notifyAll()**                          |
+|--------------------------|--------------------------------------------|------------------------------------------|
+| **Purpose**              | Wakes up one waiting thread.              | Wakes up all waiting threads.            |
+| **Efficiency**           | More efficient as it wakes only one thread. | Less efficient but ensures no thread is left waiting. |
+| **Usage**                | Use when you know which thread to wake.   | Use when all threads need to continue.   |
+
+---
+
+Feel free to copy this and use it in your `README.md`. Let me know if you need any other modifications! 😊
