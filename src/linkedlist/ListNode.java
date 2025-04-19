@@ -55,7 +55,7 @@ public class ListNode {
     }
 
     // Function to print the list
-    private void printList(ListNode head) {
+    public void printList(ListNode head) {
         ListNode current = head;
         while (current != null) {
             System.out.println(current.getData());
