@@ -1,4 +1,4 @@
-package array;
+package array.medium;
 
 public class MaximumSumSubArray {
 
