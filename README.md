@@ -1243,3 +1243,503 @@ Task 8 executed by pool-1-thread-2
 - **For most use cases, `ExecutorService` via `Executors` factory methods is sufficient.**
 - **Use `ThreadPoolExecutor` when you need advanced tuning, such as controlling queue size, rejection policy, or
   dynamically adjusting the pool.**
+
+Absolutely! Let’s break down **serialization** in Java in a simple and clear way, along with a practical code example.
+
+---
+
+## ✅ What is Serialization?
+
+**Serialization** is the process of **converting an object into a byte stream** so it can be:
+- Saved to a file or database
+- Sent over a network
+- Cached or deep-cloned
+
+Its opposite is **deserialization**, where you **reconstruct the object from the byte stream**.
+
+---
+
+## 📦 When You Serialize Fields
+
+When you serialize an object:
+- All **non-transient** and **non-static** fields are saved.
+- All **transient** fields are **skipped**.
+- **Static fields** belong to the class, not the object — so they're also skipped.
+
+---
+
+## ⚙️ How to Serialize in Java
+
+1. The class must **implement `Serializable` interface**.
+2. Fields are automatically serialized **unless marked `transient` or `static`**.
+
+---
+
+## 🧪 Example: Serialization in Action
+
+```java
+import java.io.*;
+
+// Step 1: Make class Serializable
+class User implements Serializable {
+    String username;
+    transient String password;  // Won’t be serialized
+    static String type = "Admin"; // Won’t be serialized
+
+    public User(String u, String p) {
+        username = u;
+        password = p;
+    }
+}
+
+public class SerializeDemo {
+    public static void main(String[] args) throws Exception {
+        User user = new User("rishav", "secret");
+
+        // Step 2: Serialize
+        ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("user.ser"));
+        out.writeObject(user);
+        out.close();
+
+        // Step 3: Deserialize
+        ObjectInputStream in = new ObjectInputStream(new FileInputStream("user.ser"));
+        User deserializedUser = (User) in.readObject();
+        in.close();
+
+        System.out.println("Username: " + deserializedUser.username); // rishav
+        System.out.println("Password: " + deserializedUser.password); // null (because transient)
+        System.out.println("Type: " + deserializedUser.type);         // Admin (static, not serialized)
+    }
+}
+```
+
+---
+
+## 🔍 Key Observations
+
+- `username` was serialized and deserialized.
+- `password` was **not** serialized (`transient` → becomes `null`).
+- `type` was not serialized (`static` → belongs to class, not object).
+
+---
+
+## 🛡️ Why Use `transient`?
+- Protect **sensitive data** like passwords, tokens.
+- Avoid serializing **non-serializable** classes (e.g., `Thread`, `Socket`).
+- Improve performance by skipping unnecessary fields.
+
+
+
+`@RequestScope` is a Spring annotation that defines a **bean's lifecycle to match a single HTTP request**. A new instance of the bean is created for **each incoming request**, and it is **discarded once the request is completed**.
+
+---
+
+## ✅ Purpose of `@RequestScope`
+
+- Used when you want a bean to **hold request-specific data**.
+- Ensures **thread safety**, as each HTTP request gets its own bean instance.
+
+---
+
+## 🔍 Common Use Case
+
+- Storing temporary user info, headers, or request-related computations.
+- Tracking request-specific logs or audit data.
+
+---
+
+## 🧪 Example
+
+```java
+@Component
+@RequestScope
+public class RequestData {
+
+    private final String requestId = UUID.randomUUID().toString();
+
+    public String getRequestId() {
+        return requestId;
+    }
+}
+```
+
+```java
+@RestController
+public class MyController {
+
+    private final RequestData requestData;
+
+    @Autowired
+    public MyController(RequestData requestData) {
+        this.requestData = requestData;
+    }
+
+    @GetMapping("/hello")
+    public String hello() {
+        return "Request ID: " + requestData.getRequestId();
+    }
+}
+```
+
+### 📦 Behavior:
+- Each `/hello` request gets a **fresh `RequestData` object** with a new ID.
+- After the request finishes, Spring **discards the bean**.
+
+---
+
+## ⚠️ Important Notes
+
+1. **`@RequestScope` only works in a web-aware context** (like Spring MVC or Spring Boot Web).
+2. If you try to inject a `@RequestScope` bean into a **singleton bean**, it will fail unless:
+    - You use **ObjectFactory**, **Provider**, or **proxy mode**.
+
+### 🛠 Fix using proxy:
+
+```java
+@Component
+@RequestScope(proxyMode = ScopedProxyMode.TARGET_CLASS)
+public class RequestData {  }
+```
+
+Now Spring injects a **proxy object** into the singleton, which delegates to the correct instance per request.
+
+---
+
+## 🧠 Other Scopes in Spring
+
+| Annotation       | Scope                      |
+|------------------|----------------------------|
+| `@Singleton` (default) | One instance for entire container |
+| `@Prototype`     | New instance every time requested |
+| `@RequestScope`  | One instance per HTTP request |
+| `@SessionScope`  | One instance per HTTP session |
+| `@ApplicationScope` | One instance for entire web app |
+
+---
+
+## ✅ Summary
+
+| Feature         | `@RequestScope`                                  |
+|------------------|--------------------------------------------------|
+| Lifetime         | One HTTP request                                 |
+| Thread-safe      | ✅ Yes (per-thread per-request)                  |
+| Use case         | Request data, user context, temporary state      |
+| Needs proxy for singleton | ✅ Yes, if injected into a singleton bean  |
+
+
+Great! Let's dive into **`@SessionScope`** first, then show how to **inject request/session-scoped beans into singleton or async/scheduled contexts**, which can be tricky without proper setup.
+
+---
+
+## ✅ `@SessionScope`
+
+### 📌 What is it?
+
+`@SessionScope` is a Spring annotation that creates **one instance of a bean per HTTP session**. It’s useful for storing **user-specific data** that should persist across multiple requests during a session (e.g., login status, cart data).
+
+---
+
+### 🧪 Example
+
+```java
+@Component
+@SessionScope
+public class UserSession {
+    private String username;
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+}
+```
+
+```java
+@RestController
+public class SessionController {
+
+    @Autowired
+    private UserSession userSession;
+
+    @PostMapping("/login")
+    public String login(@RequestParam String name) {
+        userSession.setUsername(name);
+        return "Logged in as " + name;
+    }
+
+    @GetMapping("/user")
+    public String getUser() {
+        return "Current user: " + userSession.getUsername();
+    }
+}
+```
+
+> ✅ Same `UserSession` object is shared across multiple requests **from the same user/session**.
+
+---
+
+### ⚠ If Injecting into Singleton Bean
+
+Spring will throw an error if you inject a scoped bean (`@RequestScope` or `@SessionScope`) into a singleton (like services or scheduled tasks).
+
+---
+
+## 🛠 Fix: Use Proxies with `proxyMode`
+
+```java
+@Component
+@SessionScope(proxyMode = ScopedProxyMode.TARGET_CLASS)
+public class UserSession {  }
+```
+
+Now Spring injects a **proxy** into singleton beans, which dynamically resolves the correct session instance at runtime.
+
+---
+
+## 🔄 Injecting into `@Scheduled` or Async Components
+
+These are not tied to a web request or session, so injecting `@RequestScope` or `@SessionScope` directly won't work.
+
+### 💡 Solution: Use `ObjectFactory`, `Provider`, or `ApplicationContext`
+
+#### ✅ Using `ObjectFactory`
+
+```java
+@Component
+public class SomeService {
+
+    @Autowired
+    private ObjectFactory<RequestData> requestDataFactory;
+
+    public void process() {
+        RequestData data = requestDataFactory.getObject(); // Gets correct request-scoped bean
+        System.out.println("Request ID: " + data.getRequestId());
+    }
+}
+```
+
+#### ✅ Using `Provider` (JSR-330)
+
+```java
+@Component
+public class SomeService {
+
+    @Autowired
+    private Provider<RequestData> provider;
+
+    public void process() {
+        RequestData data = provider.get();
+        // use data
+    }
+}
+```
+
+#### ✅ Using `ApplicationContext`
+
+```java
+@Component
+public class SomeService {
+
+    @Autowired
+    private ApplicationContext context;
+
+    public void process() {
+        RequestData data = context.getBean(RequestData.class);
+    }
+}
+```
+
+---
+
+## ✅ Summary
+
+| Scenario                          | Solution                                             |
+|-----------------------------------|------------------------------------------------------|
+| Inject `@RequestScope`/`@SessionScope` into singleton | Use `proxyMode = TARGET_CLASS`                        |
+| Use scoped beans in async/scheduled logic | Use `ObjectFactory`, `Provider`, or `ApplicationContext` |
+| Want session-persistent data     | Use `@SessionScope`                                  |
+| Request-only data                | Use `@RequestScope`                                  |
+
+
+Absolutely! Let's go deep into **`@Transactional`** in Spring—what it is, how it works, when to use it, when it fails, and how to handle it properly, especially from an interview perspective.
+
+---
+
+## 🔍 What is `@Transactional`?
+
+`@Transactional` is a Spring annotation that **manages transactions declaratively**. It tells Spring to wrap the annotated method or class in a **database transaction**—automatically beginning, committing, or rolling back based on success/failure.
+
+---
+
+## ✅ Why Do We Use `@Transactional`?
+
+- To ensure **data integrity and consistency**.
+- To perform **atomic** operations—either all changes succeed or none.
+- To simplify **transaction management**—no manual begin/commit/rollback.
+
+---
+
+## 🛠️ Example
+
+```java
+@Service
+public class AccountService {
+
+    @Autowired
+    private AccountRepository accountRepository;
+
+    @Transactional
+    public void transferMoney(Long fromId, Long toId, BigDecimal amount) {
+        Account from = accountRepository.findById(fromId).get();
+        Account to = accountRepository.findById(toId).get();
+
+        from.setBalance(from.getBalance().subtract(amount));
+        to.setBalance(to.getBalance().add(amount));
+
+        accountRepository.save(from);
+        accountRepository.save(to);
+    }
+}
+```
+
+> 💥 If an exception occurs mid-way, the whole transaction is **rolled back**.
+
+---
+
+## ⚙️ Internal Working (Under the Hood)
+
+- Spring uses **AOP (Aspect-Oriented Programming)** to wrap the method in a **proxy**.
+- When a `@Transactional` method is called:
+    - Spring opens a DB connection (via a `TransactionManager`).
+    - On successful completion → **commit**.
+    - On runtime exception → **rollback**.
+
+---
+
+## ❌ When Does `@Transactional` NOT Work?
+
+### 1. **Self-invocation**
+
+```java
+@Transactional
+public void outer() {
+    inner(); // Calls another method in same class
+}
+
+@Transactional
+public void inner() {  }  // ❌ No transaction will be applied here
+```
+
+> ❗ Because it bypasses Spring proxy.
+
+✅ **Fix**: Move the inner method to another bean/service.
+
+---
+
+### 2. **Called Before Spring Proxy Initialized**
+
+```java
+@PostConstruct
+@Transactional
+public void init() {
+   // ❌ Transaction won't work here
+}
+```
+
+> Spring's proxy not yet active during `@PostConstruct`.
+
+---
+
+### 3. **Checked Exceptions (by default)**
+
+```java
+@Transactional
+public void doSomething() throws IOException {
+    throw new IOException("Checked exception");  // ❌ No rollback
+}
+```
+
+> Only **unchecked (Runtime) exceptions trigger rollback** by default.
+
+✅ **Fix**:
+
+
+@Transactional(rollbackFor = IOException.class)
+
+
+---
+
+### 4. **Wrong Propagation or Isolation Settings**
+
+Misusing `@Transactional(propagation = Propagation.NOT_SUPPORTED)` might disable the transaction entirely.
+
+---
+
+## 🔄 Transaction Propagation Types
+
+| Type              | Meaning                                                  |
+|-------------------|----------------------------------------------------------|
+| `REQUIRED`        | Default. Use existing or create new transaction.         |
+| `REQUIRES_NEW`    | Always create a new transaction.                         |
+| `NESTED`          | Savepoint inside current transaction.                    |
+| `SUPPORTS`        | Join if one exists, else no transaction.                 |
+| `MANDATORY`       | Must join existing transaction.                          |
+| `NOT_SUPPORTED`   | Executes **outside** of a transaction.                   |
+| `NEVER`           | Fails if transaction exists.                             |
+
+---
+
+## ⚙️ Isolation Levels
+
+| Isolation Level     | Description                                              |
+|----------------------|----------------------------------------------------------|
+| `READ_UNCOMMITTED`   | Can read uncommitted changes (dirty read)               |
+| `READ_COMMITTED`     | Default in many DBs (no dirty reads)                    |
+| `REPEATABLE_READ`    | Same query returns same results during transaction      |
+| `SERIALIZABLE`       | Fully isolated, slowest, avoids phantom reads           |
+
+---
+
+## ✅ Best Practices
+
+1. **Use on service layer methods**, not DAOs or controllers.
+2. Prefer **checked exceptions for business logic** and configure rollback explicitly.
+3. Keep transactional methods **short** and focused.
+4. Avoid calling `@Transactional` methods from within the same class.
+
+---
+
+## ✅ Pros and Cons
+
+### ✅ Pros
+- Declarative, no boilerplate
+- Handles rollback automatically
+- Supports nested and complex transaction management
+
+### ❌ Cons
+- Silent failures (e.g., self-invocation)
+- Debugging can be tricky
+- Improper configuration leads to no rollback
+
+---
+
+## 🧠 Interview-Specific Tips
+
+### Common Interview Questions
+- What does `@Transactional` do internally?
+- When does it fail?
+- How does Spring decide when to rollback?
+- Difference between `REQUIRED` and `REQUIRES_NEW`?
+- How would you handle self-invocation?
+
+### Suggested Answers
+- Always mention **proxy-based AOP**.
+- Talk about **rollback on RuntimeException**, and how to configure `rollbackFor`.
+- Explain how **method visibility (must be `public`)** affects it.
+- Describe **alternatives like programmatic transactions (using `TransactionTemplate`)** when declarative ones fall short.
+
+
+
